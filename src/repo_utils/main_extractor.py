@@ -9,7 +9,6 @@ from tokenizer import extract_text_from_file, tokenize_text
 
 class RepoTree(BaseModel):
     name: str                  
-    type: str                 
     children: Union[List['RepoTree'], None] = None
 
 RepoTree.model_rebuild()
@@ -29,13 +28,11 @@ def get_tree(path: Path) -> List[RepoTree]:
         if item.is_dir():
             tree.append(RepoTree(
                 name=item.name,
-                type="dir",
                 children=get_tree(item)
             ))
         else:
             tree.append(RepoTree(
                 name=item.name,
-                type="file"
             ))
 
     return tree
