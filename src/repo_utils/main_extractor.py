@@ -57,7 +57,7 @@ white_list = {
     '.pl', '.fs', '.asm', '.toml'
 }
 
-token_cutoff = 150000
+token_cutoff = 3000
 
 
 def read_all_files(base_path: Path) -> str:
