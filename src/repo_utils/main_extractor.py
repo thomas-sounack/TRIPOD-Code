@@ -56,7 +56,6 @@ white_list = {
 
 token_cutoff = 3000
 
-
 def read_all_files(base_path: Path) -> str:
     """
     Reads files in the repo. Those in the blacklist are excluded,
@@ -82,9 +81,8 @@ def read_all_files(base_path: Path) -> str:
                 if len(tokens) > token_cutoff:
                     original_len = len(tokens)
                     content = content[:token_cutoff] + (
-                        f"\n\n[... CONTENT TRUNCATED: {original_len:,} chars > {token_cutoff:,} limit ]"
+                        f"\n\n[... CONTENT TRUNCATED: {original_len:,} tokens > {token_cutoff:,} limit ]"
                     )
-                    # print(f"-> TRUNCATED: {rel_path} ({original_len:,} chars)")
                 file_contents.append(header + content)
 
             except Exception as e:
@@ -95,20 +93,17 @@ def read_all_files(base_path: Path) -> str:
 def clone_and_extract_tree(
     repo_url: str,
     clone_dir: str = "cloned_repos",
-    output_dir: str = "."
-) -> Tuple[Union[List[RepoTree], None], Union[str, int]]:
+) -> Tuple[List[RepoTree], str]:
     """
-    Delegates cloning to the appropriate provider cloner, 
-    then extracts the file tree and contents, handling errors.
+    Clones the repository, extracts its file tree and content,
+    and returns both as structured data and a combined text string.
     """
-
     parsed_url = urlparse(repo_url)
     path_segments = [seg for seg in parsed_url.path.split('/') if seg]
     repo_name = path_segments[-1] if path_segments else 'unknown_repo'
     repo_name = os.path.splitext(repo_name)[0]
 
     repo_path = Path(clone_dir) / repo_name
-    content_string = Path(output_dir) / f"{repo_name}_string.txt"
 
     try:
         cloner = get_repo_cloner(repo_url)
@@ -116,15 +111,13 @@ def clone_and_extract_tree(
         tree = get_tree(repo_path)
         repo_info = RepoInfo(url=repo_url, tree=tree)
         all_text = read_all_files(repo_path)
-        with open(content_string, "w", encoding="utf-8") as f:
-            repo_info = RepoInfo(url=repo_url, tree=tree)
-            f.write("Repository tree \n")
-            f.write(repo_info.model_dump_json(indent=2))
-            f.write("\nFiles content\n")
-            f.write(all_text)
-        #print(f"Repository tree saved to {output_file_tree}")
-        #print(f"Repository content saved to {output_file_text}")
-        return tree, all_text
+        content_string = (
+            "Repository tree\n"
+            + repo_info.model_dump_json(indent=2)
+            + "\n Files content\n"
+            + all_text
+        )
+        return tree, content_string
 
     except Exception as e:
         print(f"ERROR processing repo {repo_url}: {e}")
