@@ -41,6 +41,8 @@ dependencies:
   - beautifulsoup4=4.14.3
   - bleach=6.3.0
   - bleach-with-css=6.3.0
+  - brotli=1.2.0
+  - brotli-bin=1.2.0
   - brotli-python=1.2.0
   - bzip2=1.0.8
   - c-ares=1.34.6
@@ -52,7 +54,9 @@ dependencies:
   - charset-normalizer=3.4.4
   - colorama=0.4.6
   - comm=0.2.3
+  - contourpy=1.3.3
   - cpython=3.13.11
+  - cycler=0.12.1
   - dataclasses=0.8
   - datasets=3.6.0
   - debugpy=1.8.19
@@ -64,7 +68,9 @@ dependencies:
   - exceptiongroup=1.3.1
   - executing=2.2.1
   - filelock=3.20.1
+  - fonttools=4.61.1
   - fqdn=1.5.1
+  - freetype=2.14.1
   - frozenlist=1.7.0
   - fsspec=2025.3.0
   - gflags=2.2.2
@@ -109,8 +115,11 @@ dependencies:
   - jupyterlab_pygments=0.3.0
   - jupyterlab_server=2.28.0
   - jupyterlab_widgets=3.0.16
+  - kiwisolver=1.4.9
   - krb5=1.21.3
   - lark=1.3.1
+  - lcms2=2.17
+  - lerc=4.0.0
   - libabseil=20250512.1
   - libarrow=19.0.1
   - libarrow-acero=19.0.1
@@ -124,11 +133,14 @@ dependencies:
   - libcrc32c=1.1.2
   - libcurl=8.17.0
   - libcxx=21.1.8
+  - libdeflate=1.25
   - libedit=3.1.20250104
   - libev=4.33
   - libevent=2.1.12
   - libexpat=2.7.3
   - libffi=3.5.2
+  - libfreetype=2.14.1
+  - libfreetype6=2.14.1
   - libgcc=15.2.0
   - libgfortran=15.2.0
   - libgfortran5=15.2.0
@@ -137,6 +149,7 @@ dependencies:
   - libgrpc=1.73.1
   - libiconv=1.18
   - libintl=0.25.1
+  - libjpeg-turbo=3.1.2
   - liblapack=3.11.0
   - liblzma=5.8.1
   - libmpdec=4.0.0
@@ -145,13 +158,17 @@ dependencies:
   - libopentelemetry-cpp=1.21.0
   - libopentelemetry-cpp-headers=1.21.0
   - libparquet=19.0.1
+  - libpng=1.6.53
   - libprotobuf=6.31.1
   - libre2-11=2025.11.05
   - libsodium=1.0.20
   - libsqlite=3.51.1
   - libssh2=1.11.1
   - libthrift=0.22.0
+  - libtiff=4.7.1
   - libutf8proc=2.11.2
+  - libwebp-base=1.6.0
+  - libxcb=1.17.0
   - libxml2=2.15.1
   - libxml2-16=2.15.1
   - libxslt=1.1.43
@@ -161,10 +178,12 @@ dependencies:
   - lz4-c=1.10.0
   - markupsafe=3.0.3
   - marshmallow=4.1.1
+  - matplotlib-base=3.10.8
   - matplotlib-inline=0.2.1
   - mistune=3.1.4
   - multidict=6.7.0
   - multiprocess=0.70.16
+  - munkres=1.1.4
   - nbclient=0.10.2
   - nbconvert-core=7.16.6
   - nbformat=5.10.4
@@ -175,6 +194,7 @@ dependencies:
   - notebook-shim=0.2.4
   - numpy=2.3.5
   - openai=2.14.0
+  - openjpeg=2.5.4
   - openssl=3.6.0
   - orc=2.2.1
   - osfclient=0.0.5
@@ -183,9 +203,11 @@ dependencies:
   - pandas=2.3.3
   - pandocfilters=1.5.0
   - parso=0.8.5
+  - patsy=1.0.2
   - pcre2=10.47
   - perl=5.32.1
   - pexpect=4.9.0
+  - pillow=12.0.0
   - pip=25.3
   - platformdirs=4.5.1
   - prometheus-cpp=1.3.0
@@ -194,6 +216,7 @@ dependencies:
   - prompt_toolkit=3.0.52
   - propcache=0.3.1
   - psutil=7.1.3
+  - pthread-stubs=0.4
   - ptyprocess=0.7.0
   - pure_eval=0.2.3
   - pyarrow=19.0.1
@@ -204,6 +227,7 @@ dependencies:
   - pygments=2.19.2
   - pyobjc-core=12.1
   - pyobjc-framework-cocoa=12.1
+  - pyparsing=3.3.1
   - pypdf2=3.0.1
   - pysocks=1.7.1
   - python=3.13.11
@@ -219,6 +243,7 @@ dependencies:
   - pytz=2025.2
   - pyyaml=6.0.3
   - pyzmq=27.1.0
+  - qhull=2020.2
   - re2=2025.11.05
   - readline=8.3
   - referencing=0.37.0
@@ -231,6 +256,8 @@ dependencies:
   - rpds-py=0.30.0
   - scikit-learn=1.8.0
   - scipy=1.16.3
+  - seaborn=0.13.2
+  - seaborn-base=0.13.2
   - send2trash=1.8.3
   - setuptools=80.9.0
   - six=1.17.0
@@ -239,6 +266,7 @@ dependencies:
   - sniffio=1.3.1
   - soupsieve=2.8.1
   - stack_data=0.6.3
+  - statsmodels=0.14.6
   - terminado=0.18.1
   - threadpoolctl=3.6.0
   - tiktoken=0.12.0
@@ -260,11 +288,14 @@ dependencies:
   - webencodings=0.5.1
   - websocket-client=1.9.0
   - widgetsnbextension=4.0.15
+  - xorg-libxau=1.0.12
+  - xorg-libxdmcp=1.1.5
   - xxhash=0.8.3
   - yaml=0.2.5
   - yarl=1.22.0
   - zeromq=4.3.5
   - zipp=3.23.0
   - zlib=1.3.1
+  - zlib-ng=2.3.2
   - zstd=1.5.7
 
