@@ -52,60 +52,59 @@ class DefaultGitCloner(RepoCloner):
 
 
 class ZenodoCloner(RepoCloner):
-    API_BASE = "https://zenodo.org/api/records/"
-
-    def _extract_zip_normalized(self, zip_path: Path, repo_path: Path):
-        with zipfile.ZipFile(zip_path) as zf:
-            members = zf.namelist()
-            top_levels = {
-                m.split("/")[0]
-                for m in members
-                if "/" in m and not m.startswith("__MACOSX")
-            }
-            zf.extractall(repo_path)
-
-        if len(top_levels) == 1:
-            root = repo_path / next(iter(top_levels))
-            if root.exists() and root.is_dir():
-                for item in root.iterdir():
-                    shutil.move(str(item), repo_path)
-                shutil.rmtree(root)
-
     def clone(self, repo_url: str, base_path: Path) -> Path:
         record_id = repo_url.rstrip("/").split("/")[-1]
-        resp = requests.get(f"{self.API_BASE}{record_id}")
-        resp.raise_for_status()
-        data = resp.json()
-
-        title = data["metadata"].get("title", f"zenodo_{record_id}")
-        safe_title = re.sub(r"[^a-zA-Z0-9._-]+", "_", title).strip("_")
-        repo_path = base_path / safe_title
-
-        # Check if already cloned
-        if repo_path.exists() and any(repo_path.iterdir()):
-            return repo_path
+        repo_path = base_path / f"zenodo_{record_id}"
 
         repo_path.mkdir(parents=True, exist_ok=True)
 
-        for f in data.get("files", []):
-            download_url = f["links"]["self"]
-            file_name = f["key"]
-            local_path = repo_path / file_name
+        try:
+            subprocess.run(
+                ["zenodo_get", "-r", record_id, "-o", "."],
+                cwd=repo_path,
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+        except subprocess.CalledProcessError as e:
+            # sometimes metadata is corrupted but zip did download correctly
+            # here we check that there's one subdir (the cloned repo dir) and that it contains a zip
+            subdirs = [p for p in repo_path.iterdir() if p.is_dir()]
+            if len(subdirs) == 1 and any(
+                f.suffix == ".zip" for f in subdirs[0].iterdir()
+            ):
+                pass
+            raise RuntimeError(
+                f"zenodo_get failed for record {record_id}: {e.stderr.strip()}"
+            )
 
-            with requests.get(download_url, stream=True) as r:
-                r.raise_for_status()
-                with open(local_path, "wb") as out:
-                    for chunk in r.iter_content(8192):
-                        out.write(chunk)
+        # -------------------------
+        # Extract ZIP files
+        # -------------------------
+        # when repo downloaded in subfolder, adjust path:
+        subdirs = [p for p in repo_path.iterdir() if p.is_dir()]
+        if len(subdirs) == 1:
+            repo_path = subdirs[0]
 
-            if zipfile.is_zipfile(local_path):
-                self._extract_zip_normalized(local_path, repo_path)
-                local_path.unlink()
+        for zip_path in repo_path.glob("*.zip"):
+            with zipfile.ZipFile(zip_path) as zf:
+                members = zf.namelist()
+                top_levels = {
+                    m.split("/")[0]
+                    for m in members
+                    if "/" in m and not m.startswith("__MACOSX")
+                }
+                zf.extractall(repo_path)
 
-            elif tarfile.is_tarfile(local_path):
-                with tarfile.open(local_path) as tf:
-                    tf.extractall(repo_path)
-                local_path.unlink()
+            if len(top_levels) == 1:
+                root = repo_path / next(iter(top_levels))
+                if root.exists() and root.is_dir():
+                    for item in root.iterdir():
+                        shutil.move(str(item), repo_path)
+                    shutil.rmtree(root, ignore_errors=True)
+
+            zip_path.unlink()
 
         return repo_path
 
@@ -151,12 +150,16 @@ class OSFCloner(RepoCloner):
         repo_path.mkdir(parents=True, exist_ok=True)
 
         # Clone project (always creates osfstorage/)
-        subprocess.run(
-            ["osf", "-p", project_id, "clone", str(repo_path)],
-            check=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+        try:
+            subprocess.run(
+                ["osf", "-p", project_id, "clone", str(repo_path)],
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+            )
+        except subprocess.CalledProcessError as e:
+            # Project inaccessible, private, deleted, or network failure
+            raise RuntimeError(f"OSF project {project_id} inaccessible") from e
 
         osf_storage = repo_path / "osfstorage"
 
@@ -178,7 +181,7 @@ class DOICloner(RepoCloner):
     """Resolves a DOI link to its final URL and delegates to the correct cloner."""
 
     def clone(self, repo_url: str, base_path: Path) -> Path:
-        resp = requests.head(repo_url, allow_redirects=True, timeout=10)
+        resp = requests.head(repo_url, allow_redirects=True)
         resp.raise_for_status()
 
         final_url = resp.url
