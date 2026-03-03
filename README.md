@@ -10,7 +10,7 @@ This repository contains the code used in [Code Sharing In Prediction Model Rese
 
 ## Introduction
 
-In this work, we conducted a large scale analysis of research articles and their associated code repositories to quantify current code-sharing practices. The pipeline we used is fully reproducible using our 
+In this work, we conducted a large scale analysis of research articles and their associated code repositories to quantify current code-sharing practices. This repository contains the code used to obtain our results.
 
 ## Setup
 
