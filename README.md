@@ -12,6 +12,8 @@ This repository contains the code used in [Code Sharing In Prediction Model Rese
 
 In this work, we conducted a large scale analysis of research articles and their associated code repositories to quantify current code-sharing practices. This repository contains the code used to obtain our results.
 
+To characterize articles and repositories, we used OpenAI's structured output generation tool. If you are not familiar with it, you can find an example of how it works in this notebook: **TODO**, where we apply it on this repository.
+
 ## Setup
 
 To use our repository, you first need to follow these steps:
