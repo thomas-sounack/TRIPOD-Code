@@ -66,7 +66,7 @@ To reproduce our results, you can run the following notebooks:
         - Purpose: This notebook runs the LLM's article assessment on the entire dataset.
         - Outputs: The model's outputs (saved in `data/02_paper_assessment/paper_assessment_pred.parquet.br`).
 
-3. Repository Assessment
+3. Repository Assessment:
 
     - **3a)** [Create repository assessment annotations](https://github.com/thomas-sounack/TRIPOD-Code/blob/21791f4dfa95f18cf1ea3e7fcb6c196cc15b4912/notebooks/03a_create_repo_assessment_annotations.ipynb):
         - Inputs: The file containing the annotated repositories (`data/03_repo_assessment/raw_annotations_repo_assessment.csv`).
