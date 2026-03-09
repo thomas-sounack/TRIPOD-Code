@@ -38,7 +38,7 @@ To use our repository, you first need to follow these steps:
 
 4. **Add your OpenAI API key**  
     Our datasets at every step of the process are made available. However, if you would like to reproduce our results, or want to run new data through OpenAI's model, you will need to add an API key.
-    For this, rename the file `.env.txt` to `.env`, and paste your API key after `OPENAI_API_KEY=`.
+    For this, rename the file `.env.example` to `.env`, and paste your API key after `OPENAI_API_KEY=`.
 
     Note: you can visit [OpenAI's website](https://developers.openai.com/api/docs/quickstart/) for more information on how to obtain an API key, and pricing. It cost about $150 to run this pipeline end-to-end when this study was realized.
 
