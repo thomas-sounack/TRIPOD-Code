@@ -22,6 +22,7 @@ dependencies:
   - plotly=6.5.1
   - pypdf2=3.0.1
   - gitpython=3.1.46
+  - pytest=9.0.2
   - pip
   - pip:
       - git+https://github.com/dvolgyes/zenodo_get@c1f71bdd0b14e4cf732eef87df81dcc2e64c31dc
