@@ -26,4 +26,4 @@ dependencies:
   - pip
   - pip:
       - git+https://github.com/dvolgyes/zenodo_get@c1f71bdd0b14e4cf732eef87df81dcc2e64c31dc
-      - kaleido=1.2.0
+      - kaleido==1.2.0
