@@ -26,6 +26,32 @@ def extract_text_from_file(filepath):
             doc = Document(filepath)
             return "\n".join(p.text for p in doc.paragraphs)
 
+        elif ext == ".ipynb":
+            # Read Jupyter notebook as executable Python script
+            # Extract code cells and markdown cells (as comments), ignore metadata/outputs
+            with open(filepath, "r", encoding="utf-8") as f:
+                notebook = json.load(f)
+
+            parts = []
+            for cell in notebook.get("cells", []):
+                cell_type = cell.get("cell_type", "")
+                source = cell.get("source", [])
+
+                # Handle source as list of lines or single string
+                if isinstance(source, list):
+                    content = "".join(source)
+                else:
+                    content = source
+
+                if cell_type == "code":
+                    parts.append(content)
+                elif cell_type == "markdown":
+                    # Convert markdown to Python comments
+                    commented = "\n".join(f"# {line}" for line in content.split("\n"))
+                    parts.append(commented)
+
+            return "\n\n".join(parts)
+
         elif ext == ".csv":
             df = pd.read_csv(filepath)
             return df.to_string()
