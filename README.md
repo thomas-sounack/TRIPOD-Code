@@ -6,15 +6,62 @@ This repository contains the code used in [Code Sharing In Prediction Model Rese
 
 ## Table of Contents
 1. [Introduction](#introduction)
-2. [Setup](#setup)
-3. [How to use this repository](#how-to-use-this-repository)
+2. [Repository Structure](#repository-structure)
+3. [Setup](#setup)
+4. [How to use this repository](#how-to-use-this-repository)
 5. [Reference](#reference)
 
 ## Introduction
 
 In this work, we conducted a large scale analysis of research articles and their associated code repositories to quantify current code-sharing practices. This repository contains the code used to obtain our results.
 
-To characterize articles and repositories, we used OpenAI's structured output generation tool. If you are not familiar with it, you can find an example of how it works in this notebook: **TODO**, where we apply it on this repository.
+To characterize articles and repositories, we used OpenAI's structured output generation tool. If you are not familiar with it, you can find an example of how it works in [this notebook](https://github.com/thomas-sounack/TRIPOD-Code/blob/main/notebooks/example.ipynb), where we apply it on this repository.
+
+## Repository Structure
+
+```
+TRIPOD-Code/
+├── data/                          # Data files at each pipeline stage
+│   ├── 00_references/             # Raw PubMed citations for TRIPOD statements
+│   ├── 01_full_text/              # Articles with full text from PMC
+│   ├── 02_paper_assessment/       # Article assessment annotations & predictions
+│   └──  03_repo_assessment/       # Repository assessment annotations & predictions
+│
+├── notebooks/                     # Main analysis pipeline (run in order)
+│   ├── 00_merge_TRIPOD_references.ipynb
+│   ├── 01_gather_full_text.ipynb
+│   ├── 02a-c_*.ipynb              # Article assessment (annotations, eval, predictions)
+│   ├── 03a-d_*.ipynb              # Repository assessment (annotations, eval, download, predictions)
+│   ├── 04_final_analysis.ipynb    # Generate figures and statistics
+│   └── example.ipynb              # Tutorial on structured output generation
+│
+├── src/                           # Source code modules
+│   ├── llm_utils/                 # LLM interaction utilities
+│   │   ├── llm_wrapper.py         # Wrapper for OpenAI structured output API
+│   │   ├── structs.py             # Pydantic schemas (PaperAssessment, RepoAssessment)
+│   │   ├── paper_assessment_prompt.py   # Prompt for article assessment
+│   │   └── repo_assessment_prompt.py    # Prompt for repository assessment
+│   │
+│   └── repo_utils/                # Repository cloning & extraction
+│       ├── main_extractor.py      # Main entry point (clone_and_extract_tree)
+│       ├── repo_providers.py      # Platform-specific cloners (GitHub, Zenodo, OSF, etc.)
+│       └── tokenizer.py           # Text extraction and tokenization
+│
+├── tests/                         # Unit tests
+│   ├── test_llm_utils.py          # Tests for LLM utilities (mocked API calls)
+│   └── test_repo_utils.py         # Tests for repository utilities
+│
+├── figures/                       # Generated figures from analysis
+├── environment.yaml               # Conda environment specification
+├── CONTRIBUTING.md                # Contribution guidelines
+└── CODE_OF_CONDUCT.md             # Community code of conduct
+```
+
+**Key components:**
+- **`notebooks/`**: Sequential pipeline notebooks (00 → 04) that reproduce our analysis
+- **`src/llm_utils/`**: Handles structured output generation with OpenAI's API
+- **`src/repo_utils/`**: Clones repositories from GitHub, Zenodo, OSF, Figshare, and DOI links
+- **`data/`**: Intermediate and final datasets at each pipeline stage
 
 ## Setup
 
@@ -109,3 +156,16 @@ To reproduce our results, you can run the following notebooks:
 If you use this repository, please cite our [paper](#TODO):
 
 #TODO: insert citation
+
+If you would like to cite our repository as well, you can do so using this citation:
+```
+@software{Sounack_TRIPOD-Code_2026,
+    author = {Sounack, Thomas and Giancotti, Raffaele and Barreñada, Lasai and Pollard, Tom},
+    doi = {10.5281/zenodo.18897514},
+    month = mar,
+    title = {{TRIPOD-Code}},
+    url = {https://github.com/thomas-sounack/TRIPOD-Code},
+    version = {1.0.0},
+    year = {2026}
+}
+```
