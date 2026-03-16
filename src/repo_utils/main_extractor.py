@@ -12,6 +12,15 @@ TOKEN_CUTOFF_PER_FILE = 3000
 
 
 class RepoStatus(str, Enum):
+    """
+    Enumeration of possible repository extraction statuses.
+
+    :cvar OK: Repository was successfully cloned and extracted.
+    :cvar EMPTY: Repository exists but contains no meaningful content.
+    :cvar INACCESSIBLE: Repository could not be accessed (network error, private, etc.).
+    :cvar NOT_SUPPORTED: Repository URL is from an unsupported platform.
+    """
+
     OK = "ok"
     EMPTY = "empty"
     INACCESSIBLE = "inaccessible"
@@ -19,6 +28,21 @@ class RepoStatus(str, Enum):
 
 
 class RepoExtractionResult(BaseModel):
+    """
+    Result of a repository extraction operation.
+
+    :param repo_url: The original URL of the repository.
+    :type repo_url: str
+    :param status: The status of the extraction operation.
+    :type status: RepoStatus
+    :param repo_path: Local path to the cloned repository (if successful).
+    :type repo_path: str, optional
+    :param output: Extracted content including tree structure and file contents.
+    :type output: str, optional
+    :param error: Error message if extraction failed.
+    :type error: str, optional
+    """
+
     repo_url: str
     status: RepoStatus
     repo_path: Optional[str] = None
@@ -27,6 +51,15 @@ class RepoExtractionResult(BaseModel):
 
 
 class RepoTree(BaseModel):
+    """
+    Tree structure representing a file or directory in a repository.
+
+    :param name: Name of the file or directory.
+    :type name: str
+    :param children: List of child nodes (for directories). None for files.
+    :type children: list[RepoTree], optional
+    """
+
     name: str
     children: Union[List["RepoTree"], None] = None
 
@@ -35,12 +68,36 @@ RepoTree.model_rebuild()
 
 
 class RepoInfo(BaseModel):
+    """
+    Repository metadata including URL and file tree structure.
+
+    :param url: URL of the repository.
+    :type url: HttpUrl
+    :param tree: List of top-level files and directories in the repository.
+    :type tree: list[RepoTree]
+    """
+
     url: HttpUrl
     tree: List[RepoTree]
 
 
 def get_tree(path: Path) -> List[RepoTree]:
-    """Recursively builds the file/directory tree structure."""
+    """
+    Recursively build a tree structure of files and directories.
+
+    Hidden files and directories (starting with ".") are excluded.
+
+    :param path: Root path to build the tree from.
+    :type path: Path
+    :return: List of RepoTree nodes representing files and subdirectories.
+    :rtype: list[RepoTree]
+
+    :Example:
+
+    >>> tree = get_tree(Path("/path/to/repo"))
+    >>> tree[0].name
+    'README.md'
+    """
     tree = []
     for item in path.iterdir():
         if item.name.startswith("."):
@@ -134,14 +191,30 @@ allow_list = {
 
 def read_all_files(base_path: Path, verbose: bool, context_window: int) -> str:
     """
-    Reads files in the repo. Those in the blacklist are excluded,
-    those in the allowlist are taken in full, and the rest are taken
-    with a per-file token cutoff.
+    Read and concatenate all files from a repository with token management.
 
-    Additionally, we track a global token budget (`context_window`).
-    For ANY file (allowlisted or not), if adding that file's header+content
-    would exceed the context window, we only add the header and a
-    truncation marker, then stop reading further files.
+    Files are processed with the following rules:
+
+    - Files in :data:`block_list` (binary, data files) are excluded entirely.
+    - Files in :data:`allow_list` (code files) are included in full.
+    - Other files are truncated at :data:`TOKEN_CUTOFF_PER_FILE` tokens.
+    - README files are always included in full regardless of extension.
+    - Total output is limited to ``context_window`` tokens.
+
+    :param base_path: Root path of the repository to read.
+    :type base_path: Path
+    :param verbose: If True, print warnings for files that cannot be read.
+    :type verbose: bool
+    :param context_window: Maximum total tokens to include in output.
+    :type context_window: int
+    :return: Concatenated file contents with headers indicating file paths.
+    :rtype: str
+
+    :Example:
+
+    >>> content = read_all_files(Path("/repo"), verbose=False, context_window=50000)
+    >>> "FILE: README.md" in content
+    True
     """
     file_contents = []
     total_tokens = 0
@@ -206,6 +279,40 @@ def clone_and_extract_tree(
     clone_dir: str,
     verbose: bool = False,
 ) -> RepoExtractionResult:
+    """
+    Clone a repository and extract its content for analysis.
+
+    This is the main entry point for repository extraction. It:
+
+    1. Determines the appropriate cloner based on the URL
+    2. Clones the repository (or uses cached version if exists)
+    3. Builds a tree structure of all files
+    4. Extracts and concatenates file contents
+    5. Returns structured results
+
+    :param repo_url: URL of the repository to clone and extract.
+    :type repo_url: str
+    :param context_window: Maximum tokens to include in extracted content.
+    :type context_window: int
+    :param clone_dir: Local directory path for storing cloned repositories.
+    :type clone_dir: str
+    :param verbose: If True, print detailed progress and error messages.
+    :type verbose: bool
+    :return: Extraction result containing status, path, and content.
+    :rtype: RepoExtractionResult
+
+    :Example:
+
+    >>> result = clone_and_extract_tree(
+    ...     repo_url="https://github.com/user/repo",
+    ...     context_window=100000,
+    ...     clone_dir="./cloned_repos",
+    ... )
+    >>> result.status
+    <RepoStatus.OK: 'ok'>
+    >>> "Repository tree" in result.output
+    True
+    """
 
     try:
         cloner = get_repo_cloner(repo_url)
