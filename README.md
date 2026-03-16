@@ -42,6 +42,10 @@ To use our repository, you first need to follow these steps:
 
     Note: you can visit [OpenAI's website](https://developers.openai.com/api/docs/quickstart/) for more information on how to obtain an API key, and pricing. It cost about $150 to run this pipeline end-to-end when this study was realized.
 
+5. **Hardware requirements**
+    The LLMs used in this repository are being queried through an API. As such, no GPUs are needed to run this code. However, the [Gather full text](https://github.com/thomas-sounack/TRIPOD-Code/blob/21791f4dfa95f18cf1ea3e7fcb6c196cc15b4912/notebooks/01_gather_full_text.ipynb) step can be computationally heavy if you decide to re-build the pmid - full text index, which requires a lot of RAM. This project was ran on a computer with 48GB of RAM.
+
+
 ## How to use this repository
 
 To reproduce our results, you can run the following notebooks:

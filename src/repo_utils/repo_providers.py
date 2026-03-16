@@ -13,15 +13,41 @@ import tarfile
 
 
 class RepoNotSupportedError(Exception):
+    """
+    Exception raised when a repository URL is from an unsupported platform.
+
+    :param message: Description of why the repository is not supported.
+    :type message: str
+    """
+
     pass
 
 
 def _ensure_dir(path: Path):
+    """
+    Ensure a directory exists, creating it and any parents if necessary.
+
+    :param path: The directory path to create.
+    :type path: Path
+    """
     path.mkdir(parents=True, exist_ok=True)
 
 
 def extract_file_tree(repo_path: Path) -> List[str]:
-    """Return a sorted list of relative file paths."""
+    """
+    Extract a sorted list of all file paths in a repository.
+
+    :param repo_path: Root path of the repository to scan.
+    :type repo_path: Path
+    :return: Sorted list of relative file paths as strings.
+    :rtype: list[str]
+
+    :Example:
+
+    >>> files = extract_file_tree(Path("/path/to/repo"))
+    >>> print(files)
+    ['README.md', 'src/main.py', 'tests/test_main.py']
+    """
     files = []
     for p in repo_path.rglob("*"):
         if p.is_file():
@@ -30,13 +56,48 @@ def extract_file_tree(repo_path: Path) -> List[str]:
 
 
 class RepoCloner(ABC):
+    """
+    Abstract base class for repository cloners.
+
+    Subclasses must implement the :meth:`clone` method to handle
+    repository cloning for specific platforms (e.g., GitHub, Zenodo).
+    """
+
     @abstractmethod
     def clone(self, repo_url: str, base_path: Path) -> Path:
+        """
+        Clone a repository to a local directory.
+
+        :param repo_url: URL of the repository to clone.
+        :type repo_url: str
+        :param base_path: Base directory where the repository will be cloned.
+        :type base_path: Path
+        :return: Path to the cloned repository directory.
+        :rtype: Path
+        :raises Exception: If cloning fails.
+        """
         pass
 
 
 class DefaultGitCloner(RepoCloner):
+    """
+    Cloner for standard Git repositories (GitHub, GitLab, Gitee, etc.).
+
+    Uses shallow cloning (depth=1) to minimize download time and disk usage.
+    Skips cloning if the repository already exists locally.
+    """
+
     def clone(self, repo_url: str, base_path: Path) -> Path:
+        """
+        Clone a Git repository using GitPython.
+
+        :param repo_url: URL of the Git repository.
+        :type repo_url: str
+        :param base_path: Base directory for cloning.
+        :type base_path: Path
+        :return: Path to the cloned repository.
+        :rtype: Path
+        """
         parsed = urlparse(repo_url)
         parts = [p for p in parsed.path.split("/") if p]
         repo_name = os.path.splitext(parts[-1])[0] if parts else "unknown_repo"
@@ -52,7 +113,25 @@ class DefaultGitCloner(RepoCloner):
 
 
 class ZenodoCloner(RepoCloner):
+    """
+    Cloner for Zenodo records.
+
+    Uses the ``zenodo_get`` CLI tool to download record files.
+    Automatically extracts ZIP archives and handles nested directory structures.
+    """
+
     def clone(self, repo_url: str, base_path: Path) -> Path:
+        """
+        Download a Zenodo record.
+
+        :param repo_url: URL of the Zenodo record (e.g., https://zenodo.org/record/12345).
+        :type repo_url: str
+        :param base_path: Base directory for downloading.
+        :type base_path: Path
+        :return: Path to the downloaded repository.
+        :rtype: Path
+        :raises RuntimeError: If zenodo_get fails to download the record.
+        """
         record_id = repo_url.rstrip("/").split("/")[-1]
         repo_path = base_path / f"zenodo_{record_id}"
 
@@ -110,9 +189,26 @@ class ZenodoCloner(RepoCloner):
 
 
 class FigshareCloner(RepoCloner):
+    """
+    Cloner for Figshare articles.
+
+    Uses the Figshare API to fetch article metadata and download all files.
+    """
+
     API_BASE = "https://api.figshare.com/v2/articles/"
 
     def clone(self, repo_url: str, base_path: Path) -> Path:
+        """
+        Download all files from a Figshare article.
+
+        :param repo_url: URL of the Figshare article.
+        :type repo_url: str
+        :param base_path: Base directory for downloading.
+        :type base_path: Path
+        :return: Path to the downloaded files directory.
+        :rtype: Path
+        :raises requests.HTTPError: If API requests fail.
+        """
         article_id = repo_url.rstrip("/").split("/")[-1]
         meta = requests.get(f"{self.API_BASE}{article_id}").json()
         title = meta.get("title", f"figshare_{article_id}")
@@ -139,7 +235,25 @@ class FigshareCloner(RepoCloner):
 
 
 class OSFCloner(RepoCloner):
+    """
+    Cloner for Open Science Framework (OSF) projects.
+
+    Uses the ``osf`` CLI tool to clone project files.
+    Flattens the osfstorage directory structure after cloning.
+    """
+
     def clone(self, repo_url: str, base_path: Path) -> Path:
+        """
+        Clone an OSF project.
+
+        :param repo_url: URL of the OSF project (e.g., https://osf.io/abc123).
+        :type repo_url: str
+        :param base_path: Base directory for cloning.
+        :type base_path: Path
+        :return: Path to the cloned project.
+        :rtype: Path
+        :raises RuntimeError: If the OSF project is inaccessible.
+        """
         project_id = repo_url.rstrip("/").split("/")[-1]
         repo_path = base_path / project_id
 
@@ -178,9 +292,26 @@ class OSFCloner(RepoCloner):
 
 
 class DOICloner(RepoCloner):
-    """Resolves a DOI link to its final URL and delegates to the correct cloner."""
+    """
+    Cloner that resolves DOI URLs and delegates to the appropriate cloner.
+
+    Follows DOI redirects to determine the final repository URL,
+    then uses :func:`get_repo_cloner` to select the correct cloner.
+    """
 
     def clone(self, repo_url: str, base_path: Path) -> Path:
+        """
+        Resolve a DOI and clone the target repository.
+
+        :param repo_url: DOI URL (e.g., https://doi.org/10.1234/example).
+        :type repo_url: str
+        :param base_path: Base directory for cloning.
+        :type base_path: Path
+        :return: Path to the cloned repository.
+        :rtype: Path
+        :raises requests.HTTPError: If DOI resolution fails.
+        :raises RepoNotSupportedError: If the resolved URL is not supported.
+        """
         resp = requests.head(repo_url, allow_redirects=True)
         resp.raise_for_status()
 
@@ -201,7 +332,31 @@ CLONER_MAP = {
 
 
 def get_repo_cloner(repo_url: str) -> RepoCloner:
-    """Determines the appropriate RepoCloner subclass for a given URL."""
+    """
+    Get the appropriate cloner for a repository URL.
+
+    Analyzes the URL domain to determine which :class:`RepoCloner`
+    subclass should handle the repository.
+
+    :param repo_url: URL of the repository.
+    :type repo_url: str
+    :return: An instance of the appropriate RepoCloner subclass.
+    :rtype: RepoCloner
+    :raises RepoNotSupportedError: If no cloner is available for the URL domain.
+
+    :Example:
+
+    >>> cloner = get_repo_cloner("https://github.com/user/repo")
+    >>> isinstance(cloner, DefaultGitCloner)
+    True
+
+    Supported platforms:
+        - GitHub, GitLab, Gitee (DefaultGitCloner)
+        - Zenodo (ZenodoCloner)
+        - Figshare (FigshareCloner)
+        - OSF (OSFCloner)
+        - DOI URLs (DOICloner, which resolves and delegates)
+    """
     parsed_url = urlparse(repo_url)
     domain = parsed_url.netloc
     domain = re.sub(r"^www\.", "", domain).lower()

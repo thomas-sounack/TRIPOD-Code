@@ -14,7 +14,22 @@ logger.setLevel(logging.ERROR)
 
 def extract_text_from_file(filepath):
     """
-    Returns the contents of the processed files in the repository
+    Extract text content from a file based on its extension.
+
+    Supports multiple file formats including PDF, DOCX, Jupyter notebooks,
+    CSV, JSON, and plain text files. Binary files are detected and return
+    an empty string.
+
+    :param filepath: Path to the file to extract text from.
+    :type filepath: str or Path
+    :return: The extracted text content from the file. Returns an empty
+        string if the file cannot be read or contains binary content.
+    :rtype: str
+
+    :Example:
+
+    >>> content = extract_text_from_file("script.py")
+    >>> content = extract_text_from_file("notebook.ipynb")
     """
     ext = Path(filepath).suffix.lower()
     try:
@@ -72,6 +87,25 @@ def extract_text_from_file(filepath):
 
 
 def tokenize_text(text, encoding_name="cl100k_base"):
+    """
+    Tokenize text using a tiktoken encoding.
+
+    :param text: The text string to tokenize.
+    :type text: str
+    :param encoding_name: The name of the tiktoken encoding to use.
+        Defaults to "cl100k_base"
+    :type encoding_name: str
+    :return: A tuple containing the list of token IDs and the encoding object.
+    :rtype: tuple[list[int], tiktoken.Encoding]
+
+    :Example:
+
+    >>> tokens, enc = tokenize_text("Hello, world!")
+    >>> len(tokens)
+    4
+    >>> enc.decode(tokens)
+    'Hello, world!'
+    """
     enc = tiktoken.get_encoding(encoding_name)
     tokens = enc.encode(text)
     return tokens, enc
