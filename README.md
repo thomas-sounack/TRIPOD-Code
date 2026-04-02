@@ -82,6 +82,7 @@ To use our repository, you first need to follow these steps:
    conda env create -f environment.yaml
    conda activate TRIPOD-Code
    ```
+   This command takes about one minute to run.
 
 4. **Add your OpenAI API key**  
     Our datasets at every step of the process are made available. However, if you would like to reproduce our results, or want to run new data through OpenAI's model, you will need to add an API key.
@@ -149,7 +150,8 @@ To reproduce our results, you can run the following notebooks:
     - Inputs: The LLM article assessment (`data/02_paper_assessment/paper_assessment_pred.parquet.br`) and repository assessment (`data/03_repo_assessment/references_repo_assessment_pred.parquet.br`).
     - Purpose: Generates figures and analyses using the model outputs.
     - Outputs: Article and repository statistics, and figures saved in `data/figures`.
-    
+  
+Running this process end-to-end takes about six hours using the existing PMID - full text dictionary. Re-creating the dictionary adds about seven hours to the runtime (on a Macbook M4 Pro).
 
 ## Reference
 
