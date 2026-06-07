@@ -25,7 +25,7 @@ TRIPOD-Code/
 │   ├── 00_references/             # Raw PubMed citations for TRIPOD statements
 │   ├── 01_full_text/              # Articles with full text from PMC
 │   ├── 02_paper_assessment/       # Article assessment annotations & predictions
-│   └──  03_repo_assessment/       # Repository assessment annotations & predictions
+│   └── 03_repo_assessment/       # Repository assessment annotations & predictions
 │
 ├── notebooks/                     # Main analysis pipeline (run in order)
 │   ├── 00_merge_TRIPOD_references.ipynb
